@@ -77,14 +77,6 @@ export class Request extends Readable {
     this.query = parse(queryParamsToStringify(event.multiValueQueryStringParameters), {}) as {
       [name: string]: string | string[]
     }
-    // Object
-    //   .keys(event.multiValueQueryStringParameters || {})
-    //   .reduce((queryParams, key) => {
-    //     const value = event.multiValueQueryStringParameters![key] // cannot be null at this point
-    //     const _key = key.replace(/\[\]/, '')
-    //     queryParams[_key] = value!.length > 1 ? (value as string[]) : (value![0] as string)
-    //     return queryParams
-    //   }, {} as { [name: string]: string | string[] })
 
     this.path = event.path || ''
     this.url = event.path

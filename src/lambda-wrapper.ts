@@ -36,13 +36,13 @@ const ApiGatewayHandler = (router: Middleware, onFinished: OnFinishedHandler) =>
    * @return {promise} Returns undefined if callback param is set. Return a promise if callback param is undefined.
    */
   const handleApiGatewayEvent: APIGatewayProxyHandler | APIGatewayProxyHandlerV2 = function (
-    event: (APIGatewayProxyEvent & { version: string }) | APIGatewayProxyEventV2,
+    event: APIGatewayProxyEvent | APIGatewayProxyEventV2,
     context: any
   ) {
     return new Promise<APIGatewayProxyResult>(resolve => {
       const req =
-        event.version == '2.0'
-          ? new RequestV2(event as APIGatewayProxyEventV2)
+        'version' in event && event.version == '2.0'
+          ? new RequestV2(event)
           : new Request(event as APIGatewayProxyEvent)
       const res = (req.res = new Response(req, async (err: any, out: any) => {
         if (err) {
