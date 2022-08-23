@@ -1,15 +1,21 @@
-import { Request } from './request'
+import { Request, RequestV2 } from './request'
 import { Response } from './response'
-import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyEventV2,
+  APIGatewayProxyHandler,
+  APIGatewayProxyHandlerV2,
+  APIGatewayProxyResult
+} from 'aws-lambda'
 
 export type NextFunction = (param?: unknown) => void
 
 export interface Middleware {
-  (request: Request, response: Response, next: NextFunction): void
+  (request: Request | RequestV2, response: Response, next: NextFunction): void
 }
 
 export interface OnFinishedHandler {
-  (out: unknown, req: Request, res: Response): Promise<APIGatewayProxyResult>
+  (out: unknown, req: Request | RequestV2, res: Response): Promise<APIGatewayProxyResult>
 }
 
 /**
@@ -29,10 +35,16 @@ const ApiGatewayHandler = (router: Middleware, onFinished: OnFinishedHandler) =>
    * @param {object} context API Gateway context object
    * @return {promise} Returns undefined if callback param is set. Return a promise if callback param is undefined.
    */
-  const handleApiGatewayEvent: APIGatewayProxyHandler = function (event, context) {
-    return new Promise(resolve => {
-      const req = new Request(event)
-      const res = (req.res = new Response(req, async (err, out) => {
+  const handleApiGatewayEvent: APIGatewayProxyHandler | APIGatewayProxyHandlerV2 = function (
+    event: (APIGatewayProxyEvent & { version: string }) | APIGatewayProxyEventV2,
+    context: any
+  ) {
+    return new Promise<APIGatewayProxyResult>(resolve => {
+      const req =
+        event.version == '2.0'
+          ? new RequestV2(event as APIGatewayProxyEventV2)
+          : new Request(event as APIGatewayProxyEvent)
+      const res = (req.res = new Response(req, async (err: any, out: any) => {
         if (err) {
           console.error(err)
         }
