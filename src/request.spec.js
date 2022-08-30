@@ -26,7 +26,9 @@ describe('Request object version 1.0', () => {
         'c[]': 'lastName',
         'd[1]': '1',
         'd[0]': '0',
-        'shoe[color]': 'yellow'
+        'shoe[color]': 'yellow',
+        email: 'test%2Buser%40gmail.com',
+        math: '1%2B2'
       },
       multiValueQueryStringParameters: {
         a: ['1'],
@@ -34,7 +36,9 @@ describe('Request object version 1.0', () => {
         'c[]': ['-firstName', 'lastName'],
         'd[1]': ['1'],
         'd[0]': ['0'],
-        'shoe[color]': ['yellow']
+        'shoe[color]': ['yellow'],
+        email: ['test%2Buser%40gmail.com'],
+        math: ['1%2B2', '4%2B5']
       },
       stageVariables: {},
       requestContext: {},
@@ -47,6 +51,7 @@ describe('Request object version 1.0', () => {
 
     expect(request.query.a).toBe('1')
     expect(request.query.shoe.color).toBe('yellow')
+    expect(request.query.email).toBe('test+user@gmail.com')
   })
 
   it('should read all values of query parameter with multiple values', () => {
@@ -55,6 +60,7 @@ describe('Request object version 1.0', () => {
     expect(request.query.b).toEqual(['1', '2'])
     expect(request.query.c).toEqual(['-firstName', 'lastName'])
     expect(request.query.d).toEqual(['0', '1'])
+    expect(request.query.math).toEqual(['1+2', '4+5'])
   })
 
   it('should read header', () => {
@@ -193,7 +199,8 @@ describe('Request object version 2.0', () => {
       version: '2.0',
       routeKey: '$default',
       rawPath: '/my/path',
-      rawQueryString: 'a=1&b=1&b=2&c[]=-firstName&c[]=lastName&d[1]=1&d[0]=0&shoe[color]=yellow&',
+      rawQueryString:
+        'a=1&b=1&b=2&c[]=-firstName&c[]=lastName&d[1]=1&d[0]=0&shoe[color]=yellow&email=test%2Buser%40gmail.com&math=1%2B2&&math=4%2B5&',
       cookies: ['cookie1', 'cookie2'],
       headers: {
         'Content-Type': 'application/json',
@@ -202,11 +209,13 @@ describe('Request object version 2.0', () => {
       },
       queryStringParameters: {
         a: '1',
-        b: '1,2',
-        'c[]': '-firstName,lastName',
+        b: '2',
+        'c[]': 'lastName',
         'd[1]': '1',
         'd[0]': '0',
-        'shoe[color]': 'yellow'
+        'shoe[color]': 'yellow',
+        email: 'test%2Buser%40gmail.com',
+        math: '1%2B2'
       },
       requestContext: {
         accountId: '123456789012',
@@ -264,6 +273,7 @@ describe('Request object version 2.0', () => {
 
     expect(request.query.a).toBe('1')
     expect(request.query.shoe.color).toBe('yellow')
+    expect(request.query.email).toBe('test+user@gmail.com')
   })
 
   it('should read all values of query parameter with multiple values', () => {
@@ -272,6 +282,7 @@ describe('Request object version 2.0', () => {
     expect(request.query.b).toEqual(['1', '2'])
     expect(request.query.c).toEqual(['-firstName', 'lastName'])
     expect(request.query.d).toEqual(['0', '1'])
+    expect(request.query.math).toEqual(['1+2', '4+5'])
   })
 
   it('should read header', () => {

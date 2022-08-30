@@ -74,7 +74,9 @@ export class Request extends Readable {
       }
     }
 
-    this.query = parse(queryParamsToStringify(event.multiValueQueryStringParameters), {}) as {
+    this.query = parse(queryParamsToStringify(event.multiValueQueryStringParameters), {
+      charset: 'utf-8'
+    }) as {
       [name: string]: string | string[]
     }
 
@@ -289,7 +291,9 @@ export class RequestV2 extends Readable {
     this.hostname = this.headers.host || ''
     this.method = event.requestContext.http.method
 
-    this.query = parse(event.rawQueryString) as { [name: string]: string }
+    this.query = parse(event.rawQueryString, {
+      charset: 'utf-8'
+    }) as { [name: string]: string }
 
     this.path = event.rawPath || ''
     this.url = event.rawPath
