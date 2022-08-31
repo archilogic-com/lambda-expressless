@@ -201,6 +201,7 @@ describe('Request object version 2.0', () => {
       rawPath: '/my/path',
       rawQueryString:
         'a=1&b=1&b=2&c[]=-firstName&c[]=lastName&d[1]=1&d[0]=0&shoe[color]=yellow&email=test+user@gmail.com&math=1+2&&math=4+5&',
+
       cookies: ['cookie1', 'cookie2'],
       headers: {
         'Content-Type': 'application/json',
