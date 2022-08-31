@@ -27,8 +27,8 @@ describe('Request object version 1.0', () => {
         'd[1]': '1',
         'd[0]': '0',
         'shoe[color]': 'yellow',
-        email: 'test%2Buser%40gmail.com',
-        math: '1%2B2'
+        email: 'test+user@gmail.com',
+        math: '1+2'
       },
       multiValueQueryStringParameters: {
         a: ['1'],
@@ -37,8 +37,8 @@ describe('Request object version 1.0', () => {
         'd[1]': ['1'],
         'd[0]': ['0'],
         'shoe[color]': ['yellow'],
-        email: ['test%2Buser%40gmail.com'],
-        math: ['1%2B2', '4%2B5']
+        email: ['test+user@gmail.com'],
+        math: ['1+2', '4+5']
       },
       stageVariables: {},
       requestContext: {},
@@ -200,7 +200,8 @@ describe('Request object version 2.0', () => {
       routeKey: '$default',
       rawPath: '/my/path',
       rawQueryString:
-        'a=1&b=1&b=2&c[]=-firstName&c[]=lastName&d[1]=1&d[0]=0&shoe[color]=yellow&email=test%2Buser%40gmail.com&math=1%2B2&&math=4%2B5&',
+        'a=1&b=1&b=2&c[]=-firstName&c[]=lastName&d[1]=1&d[0]=0&shoe[color]=yellow&email=test+user@gmail.com&math=1+2&&math=4+5&',
+
       cookies: ['cookie1', 'cookie2'],
       headers: {
         'Content-Type': 'application/json',
@@ -214,8 +215,8 @@ describe('Request object version 2.0', () => {
         'd[1]': '1',
         'd[0]': '0',
         'shoe[color]': 'yellow',
-        email: 'test%2Buser%40gmail.com',
-        math: '1%2B2'
+        email: 'test+user@gmail.com',
+        math: '1+2'
       },
       requestContext: {
         accountId: '123456789012',
