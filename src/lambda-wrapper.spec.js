@@ -1,6 +1,5 @@
 const { ApiGatewayHandler } = require('./lambda-wrapper')
 const Router = require('router')
-const bodyParser = require('body-parser')
 
 describe('Lambda Wrapper for payload v1.0', () => {
   const proxyRequest = {
@@ -51,9 +50,8 @@ describe('Lambda Wrapper for payload v1.0', () => {
 
   it('should handle json body on a post request', async () => {
     const router = Router()
-    router.use(bodyParser.json())
     router.use((req, res) => {
-      res.json(req.body)
+      res.json(JSON.parse(req.body))
     })
     const lambdaHandler = ApiGatewayHandler(router)
 
@@ -61,12 +59,10 @@ describe('Lambda Wrapper for payload v1.0', () => {
     const proxyRequest = {
       body: requestObject,
       headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': requestObject.length
+        'Content-Type': 'application/json'
       },
       multiValueHeaders: {
-        'Content-Type': ['application/json'],
-        'Content-Length': [requestObject.length]
+        'Content-Type': ['application/json']
       },
       httpMethod: 'POST',
       isBase64Encoded: false,
@@ -281,9 +277,8 @@ describe('Lambda Wrapper for payload v2.0', () => {
 
   it('should handle json body on a post request', async () => {
     const router = Router()
-    router.use(bodyParser.json())
     router.use((req, res) => {
-      res.json(req.body)
+      res.json(JSON.parse(req.body))
     })
     const lambdaHandler = ApiGatewayHandler(router)
 

@@ -4,7 +4,6 @@ import {
   APIGatewayProxyEventV2
 } from 'aws-lambda'
 
-import { Readable } from 'stream'
 import accepts = require('accepts')
 import { IncomingMessage } from 'http'
 
@@ -27,7 +26,7 @@ function queryParamsToStringify(params: APIGatewayProxyEventMultiValueQueryStrin
 /**
  *
  */
-export class Request extends Readable {
+export class Request {
   headers: { [k: string]: string }
   hostname: string | null
   method: string
@@ -44,8 +43,9 @@ export class Request extends Readable {
   event: APIGatewayProxyEvent
   accept: accepts.Accepts
   res: Response | null
+  body: string | undefined
   constructor(event: APIGatewayProxyEvent) {
-    super()
+    // super()
 
     this.res = null
 
@@ -87,10 +87,6 @@ export class Request extends Readable {
     this.url = event.path
     this.params = event.pathParameters as { [name: string]: string }
 
-    if (!this.get('Content-Length') && event.body) {
-      this.headers['content-length'] = Buffer.byteLength(event.body, 'utf8').toString()
-    }
-
     this.protocol = this.get('X-Forwarded-Proto') === 'https' ? 'https' : 'http'
     this.secure = this.protocol === 'https'
     this.ips = (this.get('X-Forwarded-For') || '').split(', ')
@@ -103,8 +99,12 @@ export class Request extends Readable {
     this.event = event
     this.accept = accepts((this as unknown) as IncomingMessage)
 
-    this.push(event.body)
-    this.push(null)
+    if (!this.get('Content-Length') && event.body) {
+      // not proper utf-8 length but that's not needed as the body is already a string
+      this.headers['content-length'] = event.body.length.toString()
+    }
+
+    this.body = event.body || undefined
   }
 
   /**
@@ -264,7 +264,7 @@ export class Request extends Readable {
 /**
  *
  */
-export class RequestV2 extends Readable {
+export class RequestV2 {
   headers: { [k: string]: string }
   hostname: string | null
   method: string
@@ -281,9 +281,8 @@ export class RequestV2 extends Readable {
   event: APIGatewayProxyEventV2
   accept: accepts.Accepts
   res: Response | null
+  body: string | undefined
   constructor(event: APIGatewayProxyEventV2) {
-    super()
-
     this.res = null
 
     this.headers = (Object.entries(event.headers).reduce((headers, [key, value]) => {
@@ -305,10 +304,6 @@ export class RequestV2 extends Readable {
     this.url = event.rawPath
     this.params = event.pathParameters as { [name: string]: string }
 
-    if (!this.get('Content-Length') && event.body) {
-      this.headers['content-length'] = Buffer.byteLength(event.body, 'utf8').toString()
-    }
-
     this.protocol = this.get('X-Forwarded-Proto') === 'https' ? 'https' : 'http'
     this.secure = this.protocol === 'https'
     this.ips = (this.get('X-Forwarded-For') || '').split(', ')
@@ -321,8 +316,12 @@ export class RequestV2 extends Readable {
     this.event = event
     this.accept = accepts((this as unknown) as IncomingMessage)
 
-    this.push(event.body)
-    this.push(null)
+    if (!this.get('Content-Length') && event.body) {
+      // not proper utf-8 length but that's not needed as the body is already a string
+      this.headers['content-length'] = event.body.length.toString()
+    }
+
+    this.body = event.body
   }
 
   /**

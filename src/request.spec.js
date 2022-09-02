@@ -8,12 +8,10 @@ describe('Request object version 1.0', () => {
       body: JSON.stringify(requestObject),
       headers: {
         'Content-Type': 'application/json',
-        'Content-Length': JSON.stringify(requestObject).length,
         'X-Header': 'value2'
       },
       multiValueHeaders: {
         'Content-Type': ['application/json'],
-        'Content-Length': [JSON.stringify(requestObject).length],
         'X-Header': ['value1', 'value2']
       },
       httpMethod: 'POST',
@@ -153,41 +151,11 @@ describe('Request object version 1.0', () => {
     expect(request.acceptsLanguages('tr', 'en')).toBe('tr')
   })
 
-  it('should handle content-length header if its not provided', () => {
-    delete event.headers['Content-Length']
-    delete event.multiValueHeaders['Content-Length']
-    const body = JSON.stringify(requestObject)
-    event.body = body
-
+  it('should handle non-ascii characters', () => {
+    const body = { text: 'árvíztűrőtükörfúrógép😄Tシャツを3 枚購入しました。🇨🇭🇺🇸🇯🇵🇭🇺🇬🇷🇵🇱∃⇔€🎉' }
+    event.body = JSON.stringify(body)
     const request = new Request(event)
-    expect(request.get('content-length')).toBe(body.length.toString())
-  })
-
-  it('should handle non-ascii content-length if header is not provided', () => {
-    delete event.headers['Content-Length']
-    delete event.multiValueHeaders['Content-Length']
-
-    event.body = JSON.stringify({ text: 'árvíztűrőtükörfúrógép😄' })
-    const request = new Request(event)
-    expect(request.get('content-length')).toBe('45')
-  })
-
-  it('should handle Japanese characters', () => {
-    delete event.headers['Content-Length']
-    delete event.multiValueHeaders['Content-Length']
-
-    event.body = JSON.stringify('Tシャツを3 枚購入しました。')
-    const request = new Request(event)
-    expect(request.get('content-length')).toBe('41')
-  })
-
-  it('should handle special characters', () => {
-    delete event.headers['Content-Length']
-    delete event.multiValueHeaders['Content-Length']
-
-    event.body = JSON.stringify('🇨🇭🇺🇸🇯🇵🇭🇺🇬🇷🇵🇱∃⇔€🎉')
-    const request = new Request(event)
-    expect(request.get('content-length')).toBe('63')
+    expect(JSON.parse(request.body)).toEqual(body)
   })
 })
 
@@ -205,7 +173,6 @@ describe('Request object version 2.0', () => {
       cookies: ['cookie1', 'cookie2'],
       headers: {
         'Content-Type': 'application/json',
-        'Content-Length': JSON.stringify(requestObject).length,
         'X-Header': 'value1,value2'
       },
       queryStringParameters: {
@@ -365,36 +332,10 @@ describe('Request object version 2.0', () => {
     expect(request.acceptsLanguages('tr', 'en')).toBe('tr')
   })
 
-  it('should handle content-length header if its not provided', () => {
-    delete event.headers['Content-Length']
-    const body = JSON.stringify(requestObject)
-    event.body = body
-
+  it('should handle non-ascii characters', () => {
+    const body = { text: 'árvíztűrőtükörfúrógép😄Tシャツを3 枚購入しました。🇨🇭🇺🇸🇯🇵🇭🇺🇬🇷🇵🇱∃⇔€🎉' }
+    event.body = JSON.stringify(body)
     const request = new RequestV2(event)
-    expect(request.get('content-length')).toBe(body.length.toString())
-  })
-
-  it('should handle non-ascii content-length if header is not provided', () => {
-    delete event.headers['Content-Length']
-
-    event.body = JSON.stringify({ text: 'árvíztűrőtükörfúrógép😄' })
-    const request = new RequestV2(event)
-    expect(request.get('content-length')).toBe('45')
-  })
-
-  it('should handle Japanese characters', () => {
-    delete event.headers['Content-Length']
-
-    event.body = JSON.stringify('Tシャツを3 枚購入しました。')
-    const request = new RequestV2(event)
-    expect(request.get('content-length')).toBe('41')
-  })
-
-  it('should handle special characters', () => {
-    delete event.headers['Content-Length']
-
-    event.body = JSON.stringify('🇨🇭🇺🇸🇯🇵🇭🇺🇬🇷🇵🇱∃⇔€🎉')
-    const request = new RequestV2(event)
-    expect(request.get('content-length')).toBe('63')
+    expect(JSON.parse(request.body)).toEqual(body)
   })
 })
