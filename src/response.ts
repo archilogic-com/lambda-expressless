@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { Request, RequestV2 } from './request'
+import { Request } from './request'
 import {
   APIGatewayProxyCallback,
   APIGatewayProxyCallbackV2,
@@ -22,7 +22,7 @@ export class FormatError extends Error {
  * Response Object
  */
 export class Response extends EventEmitter {
-  req: Request | RequestV2
+  req: Request
   writableEnded: boolean
   statusCode: number
   expresslesOnFinished: APIGatewayProxyCallback
@@ -35,10 +35,7 @@ export class Response extends EventEmitter {
    *
    * @param {Request} req Request object for this Response
    */
-  constructor(
-    req: Request | RequestV2,
-    onFinished: APIGatewayProxyCallback | APIGatewayProxyCallbackV2
-  ) {
+  constructor(req: Request, onFinished: APIGatewayProxyCallback | APIGatewayProxyCallbackV2) {
     super()
     this.req = req
     this.writableEnded = false
@@ -120,7 +117,7 @@ export class Response extends EventEmitter {
    *
    * @public
    */
-  format(obj: { [k: string]: (req?: Request | RequestV2, res?: Response) => void }) {
+  format(obj: { [k: string]: (req?: Request, res?: Response) => void }) {
     const defaultFn = obj.default
     const types = Object.keys(obj)
     let chosenType = this.req.accepts(...types)
