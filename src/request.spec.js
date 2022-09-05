@@ -1,4 +1,4 @@
-const { Request, RequestV2 } = require('./request')
+const { Request } = require('./request')
 
 describe('Request object version 1.0', () => {
   const requestObject = { a: 1 }
@@ -161,9 +161,9 @@ describe('Request object version 1.0', () => {
 
 describe('Request object version 2.0', () => {
   const requestObject = { a: 1 }
-  let event
+  let eventV2
   beforeEach(() => {
-    event = {
+    eventV2 = {
       version: '2.0',
       routeKey: '$default',
       rawPath: '/my/path',
@@ -237,7 +237,7 @@ describe('Request object version 2.0', () => {
   })
 
   it('should read query parameter', () => {
-    const request = new RequestV2(event)
+    const request = new Request(eventV2)
 
     expect(request.query.a).toBe('1')
     expect(request.query.shoe.color).toBe('yellow')
@@ -245,7 +245,7 @@ describe('Request object version 2.0', () => {
   })
 
   it('should read all values of query parameter with multiple values', () => {
-    const request = new RequestV2(event)
+    const request = new Request(eventV2)
 
     expect(request.query.b).toEqual(['1', '2'])
     expect(request.query.c).toEqual(['-firstName', 'lastName'])
@@ -254,7 +254,7 @@ describe('Request object version 2.0', () => {
   })
 
   it('should read header', () => {
-    const request = new RequestV2(event)
+    const request = new Request(eventV2)
 
     expect(request.get('Content-Type')).toBe('application/json')
     expect(request.get('content-type')).toBe('application/json')
@@ -262,23 +262,24 @@ describe('Request object version 2.0', () => {
   })
 
   it('should read query as empty object if there is no queryparamters', () => {
-    event.queryStringParameters = {}
-    event.rawQueryString = ''
-    const request = new RequestV2(event)
+    eventV2.queryStringParameters = {}
+    eventV2.rawQueryString = ''
+    const request = new Request(eventV2)
 
     expect(request.query).toEqual({})
   })
 
   it('should read headers as empty object if there is no headers', () => {
-    event.headers = {}
-    delete event.body
-    const request = new RequestV2(event)
+    eventV2.headers = {}
+    delete eventV2.body
+    delete eventV2.cookies
+    const request = new Request(eventV2)
 
     expect(request.headers).toEqual({})
   })
 
   it('should handle weird header asks', () => {
-    const request = new RequestV2(event)
+    const request = new Request(eventV2)
 
     expect(() => request.get()).toThrow(TypeError('name argument is required to req.get'))
     expect(() => request.get({})).toThrow(TypeError('name must be a string to req.get'))
@@ -286,24 +287,24 @@ describe('Request object version 2.0', () => {
 
   it('should read referer/referrer header', () => {
     const referer = 'muratcorlu.com'
-    event.headers['Referer'] = referer
+    eventV2.headers['Referer'] = referer
 
-    const request = new RequestV2(event)
+    const request = new Request(eventV2)
     expect(request.get('referer')).toBe(referer)
     expect(request.get('referrer')).toBe(referer)
   })
 
   it('check type', () => {
-    const request = new RequestV2(event)
+    const request = new Request(eventV2)
     expect(request.is('json')).toBe('json')
     expect(request.is(['html', 'json'])).toBe('json')
     expect(request.is('html', 'xml')).toBe(false)
   })
 
   it('should check accept header', () => {
-    event.headers['Accept'] = 'application/json'
+    eventV2.headers['Accept'] = 'application/json'
 
-    const request = new RequestV2(event)
+    const request = new Request(eventV2)
     expect(request.accepts('xml')).toBe(false)
     expect(request.accepts('text/xml')).toBe(false)
     expect(request.accepts('json')).toBe('json')
@@ -312,30 +313,35 @@ describe('Request object version 2.0', () => {
   })
 
   it('should check acceptEncodings', () => {
-    event.headers['accept-encoding'] = 'gzip, compress;q=0.2'
+    eventV2.headers['accept-encoding'] = 'gzip, compress;q=0.2'
 
-    const request = new RequestV2(event)
+    const request = new Request(eventV2)
     expect(request.acceptsEncodings('gzip', 'compress')).toBe('gzip')
   })
 
   it('should check acceptsCharsets', () => {
-    event.headers['accept-charset'] = 'utf-8, iso-8859-1;q=0.2, utf-7;q=0.5'
+    eventV2.headers['accept-charset'] = 'utf-8, iso-8859-1;q=0.2, utf-7;q=0.5'
 
-    const request = new RequestV2(event)
+    const request = new Request(eventV2)
     expect(request.acceptsCharsets('utf-7', 'utf-8')).toBe('utf-8')
   })
 
   it('should check acceptsLanguages', () => {
-    event.headers['accept-charset'] = 'en;q=0.8, es, tr'
+    eventV2.headers['accept-charset'] = 'en;q=0.8, es, tr'
 
-    const request = new RequestV2(event)
+    const request = new Request(eventV2)
     expect(request.acceptsLanguages('tr', 'en')).toBe('tr')
   })
 
   it('should handle non-ascii characters', () => {
     const body = { text: 'árvíztűrőtükörfúrógép😄Tシャツを3 枚購入しました。🇨🇭🇺🇸🇯🇵🇭🇺🇬🇷🇵🇱∃⇔€🎉' }
-    event.body = JSON.stringify(body)
-    const request = new RequestV2(event)
+    eventV2.body = JSON.stringify(body)
+    const request = new Request(eventV2)
     expect(JSON.parse(request.body)).toEqual(body)
+  })
+
+  it('should set cookies', () => {
+    const request = new Request(eventV2)
+    expect(request.get('Cookie')).toEqual('cookie1; cookie2')
   })
 })
