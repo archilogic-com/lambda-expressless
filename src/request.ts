@@ -45,7 +45,7 @@ export class Request {
   event: APIGatewayProxyEvent | APIGatewayProxyEventV2
   accept: accepts.Accepts
   res: Response | null
-  body: string | undefined
+  body: unknown
   constructor(event: APIGatewayProxyEvent | APIGatewayProxyEventV2) {
     this.res = null
 
