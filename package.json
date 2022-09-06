@@ -1,6 +1,6 @@
 {
   "name": "lambda-expressless",
-  "version": "2.0.4",
+  "version": "3.0.0",
   "description": "Wrap AWS Lambda functions with Express-like functions to simplify your code",
   "source": "src/lambda-wrapper.ts",
   "main": "dist/lambda-wrapper.js",
@@ -25,7 +25,6 @@
   "homepage": "https://github.com/muratcorlu/lambda-expressless#readme",
   "devDependencies": {
     "@types/jest": "22.2.3",
-    "body-parser": "^1.19.0",
     "jest": "^26.0.0",
     "prettier": "^2.1.2",
     "router": "^1.3.3",

@@ -1,4 +1,4 @@
-import { Request, RequestV2 } from './request'
+import { Request } from './request'
 import { Response } from './response'
 import {
   APIGatewayProxyEvent,
@@ -11,11 +11,11 @@ import {
 export type NextFunction = (param?: unknown) => void
 
 export interface Middleware {
-  (request: Request | RequestV2, response: Response, next: NextFunction): void
+  (request: Request, response: Response, next: NextFunction): void
 }
 
 export interface OnFinishedHandler {
-  (out: unknown, req: Request | RequestV2, res: Response): Promise<APIGatewayProxyResult>
+  (out: unknown, req: Request, res: Response): Promise<APIGatewayProxyResult>
 }
 
 /**
@@ -40,10 +40,7 @@ const ApiGatewayHandler = (router: Middleware, onFinished: OnFinishedHandler) =>
     context: any
   ) {
     return new Promise<APIGatewayProxyResult>(resolve => {
-      const req =
-        'version' in event && event.version == '2.0'
-          ? new RequestV2(event)
-          : new Request(event as APIGatewayProxyEvent)
+      const req = new Request(event)
       const res = (req.res = new Response(req, async (err: any, out: any) => {
         if (err) {
           console.error(err)
