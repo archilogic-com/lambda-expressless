@@ -43,7 +43,7 @@ export class Response extends EventEmitter {
     // Non-Express compatible props
     this.expresslessResHeaders = {}
     this.expresslessResMultiValueHeaders = undefined
-    this.expresslessResBody = ''
+    this.expresslessResBody = '""'
     this.expresslesOnFinished = onFinished
   }
 

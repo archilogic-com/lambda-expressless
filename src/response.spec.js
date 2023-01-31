@@ -7,7 +7,7 @@ describe('Response object', () => {
       expect(out).toEqual({
         statusCode: 404,
         headers: {},
-        body: ''
+        body: '""'
       })
       done()
     })
