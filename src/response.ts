@@ -175,6 +175,18 @@ export class Response extends EventEmitter {
   }
 
   /**
+   * Set response header. Added for compatibility with services that access the
+   * setHeader method.
+   *
+   * @param key Header key
+   * @param value Header value
+   */
+  setHeader(key: string, value: string) {
+    this.expresslessResHeaders[key.toLowerCase()] = value
+    return this
+  }
+
+  /**
    * Set cookie
    */
   cookie(
