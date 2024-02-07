@@ -5,6 +5,7 @@ import {
   APIGatewayProxyCallbackV2,
   APIGatewayProxyResult
 } from 'aws-lambda'
+import { gzipSync } from 'zlib'
 
 export class FormatError extends Error {
   status: number
@@ -56,11 +57,28 @@ export class Response extends EventEmitter {
     if (this.writableEnded) throw new Error('write after end')
     this.writableEnded = true
     this.emit('finished')
-    const body = this.expresslessResBody
-    const bodyStr = typeof body === 'string' ? body : JSON.stringify(body)
+    const body = this.expresslessResBody || ''
+    let bodyStr = typeof body === 'string' ? body : JSON.stringify(body)
+    const headers = this.expresslessResHeaders
+    const gzipBase64MagicBytes = 'H4s'
+    let isBase64Gzipped = bodyStr.startsWith(gzipBase64MagicBytes)
+
+    if (bodyStr.length > 5000000 && !isBase64Gzipped) {
+      // a rough estimate if it won't fit in the 6MB Lambda response limit
+      // with many special characters it might be over the limit
+      bodyStr = gzipSync(bodyStr, { level: 9 }).toString('base64')
+      isBase64Gzipped = true
+      if (!headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json'
+      }
+    }
+    if (isBase64Gzipped) {
+      headers['Content-Encoding'] = 'gzip'
+    }
     const apiGatewayResult: APIGatewayProxyResult = {
       statusCode: this.statusCode,
-      headers: this.expresslessResHeaders,
+      headers,
+      isBase64Encoded: isBase64Gzipped,
       body: bodyStr
     }
     if (this.expresslessResMultiValueHeaders)
