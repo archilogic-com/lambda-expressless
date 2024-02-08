@@ -63,7 +63,7 @@ export class Response extends EventEmitter {
     const gzipBase64MagicBytes = 'H4s'
     let isBase64Gzipped = bodyStr.startsWith(gzipBase64MagicBytes)
 
-    if (bodyStr.length > 5000000 && !isBase64Gzipped) {
+    if (bodyStr.length > 5000000 && !isBase64Gzipped && this.req.acceptsEncodings('gzip')) {
       // a rough estimate if it won't fit in the 6MB Lambda response limit
       // with many special characters it might be over the limit
       bodyStr = gzipSync(bodyStr, { level: 9 }).toString('base64')

@@ -26,10 +26,68 @@ describe('Response object', () => {
   })
 
   it('gzip large body', done => {
-    const res = new Response(null, (err, out) => {
+    const event = {
+      headers: {
+        Accept: 'text/html',
+        'Content-Length': 0,
+        'Accept-Encoding': 'gzip, deflate, sdch'
+      },
+      multiValueHeaders: {
+        Accept: ['text/html'],
+        'Content-Length': [0],
+        'Accept-Encoding': ['gzip, deflate, sdch']
+      },
+      httpMethod: 'POST',
+      isBase64Encoded: false,
+      path: '/path',
+      pathParameters: {},
+      queryStringParameters: {},
+      multiValueQueryStringParameters: {},
+      stageVariables: {},
+      requestContext: {},
+      resource: ''
+    }
+
+    const req = new Request(event)
+    req.next = error => {}
+    const res = new Response(req, (err, out) => {
       expect(out.body).toBeDefined()
       expect(out.body.length).toBeLessThan(10000)
       expect(out.isBase64Encoded).toBeTruthy()
+      done()
+    })
+    res.send('a'.repeat(6000000))
+  })
+
+  it('gzip large body - not supported encoding', done => {
+    const event = {
+      headers: {
+        Accept: 'text/html',
+        'Content-Length': 0,
+        'Accept-Encoding': 'deflate, sdch'
+      },
+      multiValueHeaders: {
+        Accept: ['text/html'],
+        'Content-Length': [0],
+        'Accept-Encoding': ['deflate, sdch']
+      },
+      httpMethod: 'POST',
+      isBase64Encoded: false,
+      path: '/path',
+      pathParameters: {},
+      queryStringParameters: {},
+      multiValueQueryStringParameters: {},
+      stageVariables: {},
+      requestContext: {},
+      resource: ''
+    }
+
+    const req = new Request(event)
+    req.next = error => {}
+    const res = new Response(req, (err, out) => {
+      expect(out.body).toBeDefined()
+      expect(out.body.length).toBe(6000000)
+      expect(out.isBase64Encoded).toBeFalsy()
       done()
     })
     res.send('a'.repeat(6000000))
