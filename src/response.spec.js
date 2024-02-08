@@ -1,11 +1,13 @@
 const { Response } = require('./response')
 const { Request } = require('./request')
+const { gzipSync } = require('zlib')
 
 describe('Response object', () => {
   it('set response status properly', done => {
     const res = new Response(null, (err, out) => {
       expect(out).toEqual({
         statusCode: 404,
+        isBase64Encoded: false,
         headers: {},
         body: ''
       })
@@ -21,6 +23,84 @@ describe('Response object', () => {
       done()
     })
     res.send('hello')
+  })
+
+  it('gzip large body', done => {
+    const event = {
+      headers: {
+        Accept: 'text/html',
+        'Content-Length': 0,
+        'Accept-Encoding': 'gzip, deflate, sdch'
+      },
+      multiValueHeaders: {
+        Accept: ['text/html'],
+        'Content-Length': [0],
+        'Accept-Encoding': ['gzip, deflate, sdch']
+      },
+      httpMethod: 'POST',
+      isBase64Encoded: false,
+      path: '/path',
+      pathParameters: {},
+      queryStringParameters: {},
+      multiValueQueryStringParameters: {},
+      stageVariables: {},
+      requestContext: {},
+      resource: ''
+    }
+
+    const req = new Request(event)
+    req.next = error => {}
+    const res = new Response(req, (err, out) => {
+      expect(out.body).toBeDefined()
+      expect(out.body.length).toBeLessThan(10000)
+      expect(out.isBase64Encoded).toBeTruthy()
+      done()
+    })
+    res.send('a'.repeat(6000000))
+  })
+
+  it('gzip large body - not supported encoding', done => {
+    const event = {
+      headers: {
+        Accept: 'text/html',
+        'Content-Length': 0,
+        'Accept-Encoding': 'deflate, sdch'
+      },
+      multiValueHeaders: {
+        Accept: ['text/html'],
+        'Content-Length': [0],
+        'Accept-Encoding': ['deflate, sdch']
+      },
+      httpMethod: 'POST',
+      isBase64Encoded: false,
+      path: '/path',
+      pathParameters: {},
+      queryStringParameters: {},
+      multiValueQueryStringParameters: {},
+      stageVariables: {},
+      requestContext: {},
+      resource: ''
+    }
+
+    const req = new Request(event)
+    req.next = error => {}
+    const res = new Response(req, (err, out) => {
+      expect(out.body).toBeDefined()
+      expect(out.body.length).toBe(6000000)
+      expect(out.isBase64Encoded).toBeFalsy()
+      done()
+    })
+    res.send('a'.repeat(6000000))
+  })
+
+  it('already gzipped body left as is', done => {
+    const content = gzipSync('foo bar some text to be zippped...').toString('base64')
+    const res = new Response(null, (err, out) => {
+      expect(out.body).toEqual(content)
+      expect(out.isBase64Encoded).toBeTruthy()
+      done()
+    })
+    res.send(content)
   })
 
   it('set content-type', done => {

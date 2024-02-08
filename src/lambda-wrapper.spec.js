@@ -41,6 +41,7 @@ describe('Lambda Wrapper for payload v1.0', () => {
 
     expect(result).toEqual({
       statusCode: 200,
+      isBase64Encoded: false,
       headers: {
         'content-type': 'application/json'
       },
@@ -78,6 +79,7 @@ describe('Lambda Wrapper for payload v1.0', () => {
     const result = await lambdaHandler(proxyRequest, {})
     expect(result).toEqual({
       statusCode: 200,
+      isBase64Encoded: false,
       headers: {
         'content-type': 'application/json'
       },
@@ -101,6 +103,7 @@ describe('Lambda Wrapper for payload v1.0', () => {
 
     expect(result).toEqual({
       statusCode: 200,
+      isBase64Encoded: false,
       headers: {
         'content-type': 'application/json'
       },
@@ -168,6 +171,7 @@ describe('Lambda Wrapper for payload v1.0', () => {
     const result = await lambdaHandler(proxyRequest, {})
     expect(result).toEqual({
       statusCode: 200,
+      isBase64Encoded: false,
       headers: {
         'content-type': 'application/json'
       },
@@ -192,6 +196,7 @@ describe('Lambda Wrapper for payload v1.0', () => {
     const result = await lambdaHandler(proxyRequest, {})
     expect(result).toEqual({
       statusCode: 200,
+      isBase64Encoded: false,
       headers: {
         'content-type': 'application/json'
       },
@@ -218,6 +223,7 @@ describe('Lambda Wrapper for payload v1.0', () => {
     const result = await lambdaHandler(request, {})
     expect(result).toEqual({
       statusCode: 200,
+      isBase64Encoded: false,
       headers: {
         'content-type': 'application/json'
       },
@@ -268,6 +274,7 @@ describe('Lambda Wrapper for payload v2.0', () => {
 
     expect(result).toEqual({
       statusCode: 200,
+      isBase64Encoded: false,
       headers: {
         'content-type': 'application/json'
       },
@@ -285,6 +292,7 @@ describe('Lambda Wrapper for payload v2.0', () => {
     const result = await lambdaHandler(proxyRequest, {})
     expect(result).toEqual({
       statusCode: 200,
+      isBase64Encoded: false,
       headers: {
         'content-type': 'application/json'
       },
@@ -308,6 +316,7 @@ describe('Lambda Wrapper for payload v2.0', () => {
 
     expect(result).toEqual({
       statusCode: 200,
+      isBase64Encoded: false,
       headers: {
         'content-type': 'application/json'
       },
@@ -381,6 +390,7 @@ describe('Lambda Wrapper for payload v2.0', () => {
     const result = await lambdaHandler(proxyRequest, {})
     expect(result).toEqual({
       statusCode: 200,
+      isBase64Encoded: false,
       headers: {
         'content-type': 'application/json'
       },
@@ -405,6 +415,7 @@ describe('Lambda Wrapper for payload v2.0', () => {
     const result = await lambdaHandler(proxyRequest, {})
     expect(result).toEqual({
       statusCode: 200,
+      isBase64Encoded: false,
       headers: {
         'content-type': 'application/json'
       },
@@ -431,6 +442,7 @@ describe('Lambda Wrapper for payload v2.0', () => {
     const result = await lambdaHandler(request, {})
     expect(result).toEqual({
       statusCode: 200,
+      isBase64Encoded: false,
       headers: {
         'content-type': 'application/json'
       },
