@@ -125,6 +125,28 @@ describe('Response object', () => {
     res.end()
   })
 
+  it('set header with setHeader', done => {
+    const res = new Response(null, err => {
+      done()
+    })
+    res.setHeader('X-Header', 'b')
+    expect(res.get('X-Header')).toBe('b')
+    // Should work case insensitive
+    expect(res.get('x-Header')).toBe('b')
+    res.end()
+  })
+
+  it('set header with header', done => {
+    const res = new Response(null, err => {
+      done()
+    })
+    res.header('X-Header', 'c')
+    expect(res.get('X-Header')).toBe('c')
+    // Should work case insensitive
+    expect(res.get('x-Header')).toBe('c')
+    res.end()
+  })
+
   it('set cookies', done => {
     const res = new Response(null, (err, out) => {
       expect(out.multiValueHeaders).toEqual({
