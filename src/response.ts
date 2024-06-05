@@ -200,8 +200,14 @@ export class Response extends EventEmitter {
    * @param value Header value
    */
   setHeader(key: string, value: string) {
-    this.expresslessResHeaders[key.toLowerCase()] = value
-    return this
+    return this.set(key, value)
+  }
+
+  /**
+   * Set response header. Added for compatibility with restify.
+   */
+  header(key: string, value: string) {
+    return this.set(key, value)
   }
 
   /**
