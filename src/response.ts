@@ -5,7 +5,7 @@ import {
   APIGatewayProxyCallbackV2,
   APIGatewayProxyResult
 } from 'aws-lambda'
-import { gzipSync } from 'zlib'
+import { brotliCompressSync, gzipSync } from 'zlib'
 
 export class FormatError extends Error {
   status: number
@@ -62,22 +62,33 @@ export class Response extends EventEmitter {
     const headers = this.expresslessResHeaders
     const gzipBase64MagicBytes = 'H4s'
     let isBase64Gzipped = bodyStr.startsWith(gzipBase64MagicBytes)
+    let isBase64BrotliCompressed = false
 
-    const needsZipping =
-      bodyStr.length > 5000000 && !isBase64Gzipped && this.req.acceptsEncodings('gzip')
+    const acceptsGzip = this.req.acceptsEncodings('gzip')
+    const acceptsBrotli = this.req.acceptsEncodings('brotli')
+    const needsCompression =
+      bodyStr.length > 5000000 && !isBase64Gzipped && (acceptsGzip || acceptsBrotli)
 
-    if (needsZipping) {
+    if (needsCompression) {
       // a rough estimate if it won't fit in the 6MB Lambda response limit
       // with many special characters it might be over the limit
-      bodyStr = gzipSync(bodyStr, { level: 9 }).toString('base64')
-      isBase64Gzipped = true
+      if (acceptsBrotli) {
+        bodyStr = brotliCompressSync(bodyStr).toString('base64')
+        isBase64BrotliCompressed = true
+      } else {
+        bodyStr = gzipSync(bodyStr, { level: 9 }).toString('base64')
+        isBase64Gzipped = true
+      }
       if (!headers['Content-Type']) {
         headers['Content-Type'] = 'application/json'
       }
     }
-    if (isBase64Gzipped || needsZipping) {
+    if (isBase64Gzipped) {
       headers['Content-Encoding'] = 'gzip'
+    } else if (isBase64BrotliCompressed) {
+      headers['Content-Encoding'] = 'br'
     }
+
     const apiGatewayResult: APIGatewayProxyResult = {
       statusCode: this.statusCode,
       headers,
