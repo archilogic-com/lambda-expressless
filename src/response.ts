@@ -76,7 +76,7 @@ export class Response extends EventEmitter {
         bodyStr = brotliCompressSync(bodyStr, {
           params: {
             [constants.BROTLI_PARAM_MODE]: constants.BROTLI_MODE_TEXT,
-            [constants.BROTLI_PARAM_SIZE_HINT]: 10000000,
+            [constants.BROTLI_PARAM_SIZE_HINT]: bodyStr.length,
             [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY - 2
           }
         }).toString('base64')
