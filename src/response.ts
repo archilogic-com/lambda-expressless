@@ -5,7 +5,7 @@ import {
   APIGatewayProxyCallbackV2,
   APIGatewayProxyResult
 } from 'aws-lambda'
-import { gzipSync } from 'zlib'
+import { brotliCompressSync, gzipSync, constants } from 'zlib'
 
 export class FormatError extends Error {
   status: number
@@ -62,23 +62,43 @@ export class Response extends EventEmitter {
     const headers = this.expresslessResHeaders
     const gzipBase64MagicBytes = 'H4s'
     let isBase64Gzipped = bodyStr.startsWith(gzipBase64MagicBytes)
+    let isBase64BrotliCompressed = false
 
-    if (bodyStr.length > 5000000 && !isBase64Gzipped && this.req.acceptsEncodings('gzip')) {
+    const acceptsGzip = this.req.acceptsEncodings('gzip')
+    const acceptsBrotli = this.req.acceptsEncodings('br')
+    const needsCompression =
+      bodyStr.length > 5000000 && !isBase64Gzipped && (acceptsGzip || acceptsBrotli)
+
+    if (needsCompression) {
       // a rough estimate if it won't fit in the 6MB Lambda response limit
       // with many special characters it might be over the limit
-      bodyStr = gzipSync(bodyStr, { level: 9 }).toString('base64')
-      isBase64Gzipped = true
+      if (acceptsBrotli) {
+        bodyStr = brotliCompressSync(bodyStr, {
+          params: {
+            [constants.BROTLI_PARAM_MODE]: constants.BROTLI_MODE_TEXT,
+            [constants.BROTLI_PARAM_SIZE_HINT]: bodyStr.length,
+            [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY - 2
+          }
+        }).toString('base64')
+        isBase64BrotliCompressed = true
+      } else {
+        bodyStr = gzipSync(bodyStr, { level: 9 }).toString('base64')
+        isBase64Gzipped = true
+      }
       if (!headers['Content-Type']) {
         headers['Content-Type'] = 'application/json'
       }
     }
     if (isBase64Gzipped) {
       headers['Content-Encoding'] = 'gzip'
+    } else if (isBase64BrotliCompressed) {
+      headers['Content-Encoding'] = 'br'
     }
+
     const apiGatewayResult: APIGatewayProxyResult = {
       statusCode: this.statusCode,
       headers,
-      isBase64Encoded: isBase64Gzipped,
+      isBase64Encoded: isBase64Gzipped || isBase64BrotliCompressed,
       body: bodyStr
     }
     if (this.expresslessResMultiValueHeaders)

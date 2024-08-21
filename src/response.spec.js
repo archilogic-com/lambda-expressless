@@ -3,8 +3,85 @@ const { Request } = require('./request')
 const { gzipSync } = require('zlib')
 
 describe('Response object', () => {
+  const requestObject = { a: 1 }
+  let req
+  beforeEach(() => {
+    const eventV2 = {
+      version: '2.0',
+      routeKey: '$default',
+      rawPath: '/my/path',
+      rawQueryString:
+        'a=1&b=1&b=2&c[]=-firstName&c[]=lastName&d[1]=1&d[0]=0&shoe[color]=yellow&email=test+user@gmail.com&math=1+2&&math=4+5&',
+
+      cookies: ['cookie1', 'cookie2'],
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Header': 'value1,value2'
+      },
+      queryStringParameters: {
+        a: '1',
+        b: '2',
+        'c[]': 'lastName',
+        'd[1]': '1',
+        'd[0]': '0',
+        'shoe[color]': 'yellow',
+        email: 'test+user@gmail.com',
+        math: '1+2'
+      },
+      requestContext: {
+        accountId: '123456789012',
+        apiId: 'api-id',
+        authentication: {
+          clientCert: {
+            clientCertPem: 'CERT_CONTENT',
+            subjectDN: 'www.example.com',
+            issuerDN: 'Example issuer',
+            serialNumber: 'a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1',
+            validity: {
+              notBefore: 'May 28 12:30:02 2019 GMT',
+              notAfter: 'Aug  5 09:36:04 2021 GMT'
+            }
+          }
+        },
+        authorizer: {
+          jwt: {
+            claims: {
+              claim1: 'value1',
+              claim2: 'value2'
+            },
+            scopes: ['scope1', 'scope2']
+          }
+        },
+        domainName: 'id.execute-api.us-east-1.amazonaws.com',
+        domainPrefix: 'id',
+        http: {
+          method: 'POST',
+          path: '/my/path',
+          protocol: 'HTTP/1.1',
+          sourceIp: 'IP',
+          userAgent: 'agent'
+        },
+        requestId: 'id',
+        routeKey: '$default',
+        stage: '$default',
+        time: '12/Mar/2020:19:03:58 +0000',
+        timeEpoch: 1583348638390
+      },
+      body: JSON.stringify(requestObject),
+      pathParameters: {
+        parameter1: 'value1'
+      },
+      isBase64Encoded: false,
+      stageVariables: {
+        stageVariable1: 'value1',
+        stageVariable2: 'value2'
+      }
+    }
+    req = new Request(eventV2)
+  })
+
   it('set response status properly', done => {
-    const res = new Response(null, (err, out) => {
+    const res = new Response(req, (err, out) => {
       expect(out).toEqual({
         statusCode: 404,
         isBase64Encoded: false,
@@ -18,11 +95,46 @@ describe('Response object', () => {
   })
 
   it('send body properly', done => {
-    const res = new Response(null, (err, out) => {
+    const res = new Response(req, (err, out) => {
       expect(out.body).toBe('hello')
       done()
     })
     res.send('hello')
+  })
+
+  it('brotli compress large body if supported', done => {
+    const event = {
+      headers: {
+        Accept: 'text/html',
+        'Content-Length': 0,
+        'Accept-Encoding': 'gzip, deflate, br'
+      },
+      multiValueHeaders: {
+        Accept: ['text/html'],
+        'Content-Length': [0],
+        'Accept-Encoding': ['gzip, deflate, br']
+      },
+      httpMethod: 'POST',
+      isBase64Encoded: false,
+      path: '/path',
+      pathParameters: {},
+      queryStringParameters: {},
+      multiValueQueryStringParameters: {},
+      stageVariables: {},
+      requestContext: {},
+      resource: ''
+    }
+
+    const req = new Request(event)
+    req.next = error => {}
+    const res = new Response(req, (err, out) => {
+      expect(out.body).toBeDefined()
+      expect(out.body.length).toBeLessThan(10000)
+      expect(out.isBase64Encoded).toBeTruthy()
+      expect(out.headers['Content-Encoding'] === 'br')
+      done()
+    })
+    res.send('a'.repeat(6000000))
   })
 
   it('gzip large body', done => {
@@ -54,6 +166,7 @@ describe('Response object', () => {
       expect(out.body).toBeDefined()
       expect(out.body.length).toBeLessThan(10000)
       expect(out.isBase64Encoded).toBeTruthy()
+      expect(out.headers['Content-Encoding'] === 'gzip')
       done()
     })
     res.send('a'.repeat(6000000))
@@ -95,7 +208,7 @@ describe('Response object', () => {
 
   it('already gzipped body left as is', done => {
     const content = gzipSync('foo bar some text to be zippped...').toString('base64')
-    const res = new Response(null, (err, out) => {
+    const res = new Response(req, (err, out) => {
       expect(out.body).toEqual(content)
       expect(out.isBase64Encoded).toBeTruthy()
       done()
@@ -104,7 +217,7 @@ describe('Response object', () => {
   })
 
   it('set content-type', done => {
-    const res = new Response(null, (err, out) => {
+    const res = new Response(req, (err, out) => {
       expect(out.headers).toEqual({
         'content-type': 'text/html'
       })
@@ -115,7 +228,7 @@ describe('Response object', () => {
   })
 
   it('get header', done => {
-    const res = new Response(null, err => {
+    const res = new Response(req, err => {
       done()
     })
     res.set('X-Header', 'a')
@@ -126,7 +239,7 @@ describe('Response object', () => {
   })
 
   it('set header with setHeader', done => {
-    const res = new Response(null, err => {
+    const res = new Response(req, err => {
       done()
     })
     res.setHeader('X-Header', 'b')
@@ -137,7 +250,7 @@ describe('Response object', () => {
   })
 
   it('set header with header', done => {
-    const res = new Response(null, err => {
+    const res = new Response(req, err => {
       done()
     })
     res.header('X-Header', 'c')
@@ -148,7 +261,7 @@ describe('Response object', () => {
   })
 
   it('set cookies', done => {
-    const res = new Response(null, (err, out) => {
+    const res = new Response(req, (err, out) => {
       expect(out.multiValueHeaders).toEqual({
         'Set-Cookie': [
           'foo=1234; Path=/',
@@ -173,7 +286,7 @@ describe('Response object', () => {
   })
 
   it('can chain status method', done => {
-    const res = new Response(null, (err, out) => {
+    const res = new Response(req, (err, out) => {
       expect(out.statusCode).toBe(201)
       expect(res.statusCode).toBe(201)
       done()
@@ -182,7 +295,7 @@ describe('Response object', () => {
   })
 
   it('can chain set method', done => {
-    const res = new Response(null, (err, out) => {
+    const res = new Response(req, (err, out) => {
       expect(out.headers).toEqual({ 'x-header': 'a' })
       done()
     })
@@ -190,7 +303,7 @@ describe('Response object', () => {
   })
 
   it('can chain type method', done => {
-    const response = new Response(null, (err, out) => {
+    const response = new Response(req, (err, out) => {
       expect(out.headers).toEqual({
         'content-type': 'text/xml'
       })
